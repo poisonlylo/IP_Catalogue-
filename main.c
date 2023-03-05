@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 int validate_number(char *str) {
     while (*str) {
         if(!isdigit(*str)){ //if the character is not a number, return false
@@ -43,6 +44,96 @@ int check_subnet_mask(int subnet_mask){
         return 0;
     }
 }
+
+
+char* dec_to_hex_ip(char* ip) {
+    if (!validate_ip(ip)) {
+        return NULL; // invalid IP address format
+    }
+    char* hex_ip = malloc(9); // allocate space for the 8-character hexadecimal IP string, plus a null terminator
+    if (hex_ip == NULL) {
+        return NULL; // memory allocation failed
+    }
+    memset(hex_ip, 0, 9); // initialize the hex_ip buffer to all zeros
+    char* ptr = strtok(ip, ".");
+    while (ptr) {
+        int num = atoi(ptr);
+        sprintf(hex_ip + strlen(hex_ip), "%02X", num);
+        ptr = strtok(NULL, ".");
+    }
+    printf("L'adresse IP en hexadecimal est : %s", hex_ip);
+    return hex_ip;
+}
+
+void dec_to_bin_ip(char* ip, char* bin_ip) {
+    if (!validate_ip(ip)) {
+        bin_ip[0] = '\0'; // invalid IP address format
+        return;
+    }
+    char* ptr = strtok(ip, ".");
+    while (ptr) {
+        int num = atoi(ptr);
+        char octet[9];
+        itoa(num, octet, 2);
+        int len = strlen(octet);
+        if (len < 8) {
+            int i;
+            for (i = 0; i < 8 - len; i++) {
+                strcat(bin_ip, "0");
+            }
+        }
+        strcat(bin_ip, octet);
+        strcat(bin_ip, ".");
+        ptr = strtok(NULL, ".");
+    }
+    bin_ip[strlen(bin_ip) - 1] = '\0'; // remove the trailing dot
+    printf("L'adresse IP en binaire est : %s", bin_ip);
+}
+
+
+int check_ip_type(char* ip_address){
+    int ip1,ip2,ip3,ip4;
+    int subnet_mask;
+    char class_type;
+    if (sscanf(ip_address, "%d.%d.%d.%d/%d", &ip1, &ip2, &ip3, &ip4, &subnet_mask) != 5) {
+        return 0;
+    }
+
+    if (ip1 == 10) { // Private IP range
+        printf("This Ip address is private");
+        return 1;
+    }
+    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31) { // Private IP range
+        printf("This Ip address is private");
+        return 1;
+    }
+    else if (ip1 == 192 && ip2 == 168) { // Private IP range
+        printf("This Ip address is private");
+        return 1;
+    }
+    else if (ip1 == 0 && ip2 == 0 && ip3 == 0 && ip4 == 0) { // Special IP: 0.0.0.0
+        printf("This Ip address is a special Ip: 0.0.0.0 ");
+        return 2;
+    }
+    else if (ip1 == 127 && ip2 == 0 && ip3 == 0 && ip4 == 1) { // Special IP: 127.0.0.1
+        printf("This Ip address is the Loopback address (127.0.0.1)");
+        return 2;
+    }
+    else if (ip1 >= 224 && ip1 <= 239) { // Special IP: Multicast
+        printf("This Ip address is Multicast Ip  ");
+        return 2;
+    }
+    else if (ip1 >= 240 && ip1 <= 255) { // Special IP: Reserved
+        printf("This Ip is a Reserved Ip address");
+        return 2;
+    }
+    else {
+        return 0;
+    }
+}
+
+
+
 int main() {
     char ip1[20] ;
     int subnet_mask;
@@ -50,7 +141,7 @@ int main() {
     FILE *fptr;
 
     while(validate_ip(ip1) != 1 ){
-        printf(" Veulliez entrez une a dresse IP correcte ");
+        printf(" Veulliez entrez une a dresse IP valide (Format : xxx.xxx.xxx.xxx) ");
         gets(ip1);
         sprintf(ip_address, "%s", ip1);
 
@@ -85,18 +176,16 @@ int main() {
 
     int ch;
 
-    printf("\tConverssions \n");
-
 
     while(1){
 
         printf("\n\n\t\tMENU PRINCIPAL:");
 
-        printf("\n\n\tConvertir en Binaire \t[1]");
+        printf("\n\n\tConnaître le type de l'adresse IP\t[1]");
 
-        printf("\n\tConvertir en Decimal\t[2]");
+        printf("\n\n\tConvertir en Binaire \t[2]");
 
-        printf("\n\tConvertir en Hexadecimal\t[3]");
+        printf("\n\n\tConvertir en Hexadecimal\t[3]");
 
         printf("\n\tSortie\t\t[5]");
 
@@ -108,25 +197,25 @@ int main() {
 
         case 1:
 
-            decimal_to_binary();
-
+            check_ip_type(ip_address);
+            
         break;
 
         case 2:
 
-            binary_to_hex();
+            dec_to_bin_ip(ip_address);
+           
 
         break;
 
         case 3:
-
-        edit_note();
-
+            dec_to_hex_ip(ip_address);
+        
+        
         break;
 
         case 4:
 
-        delete_note();
 
         break;
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <arpa/inet.h>
 
 int validate_ip(char *ip);
 int check_subnet_mask(int subnet_mask);
@@ -50,13 +51,13 @@ int main() {
     while(1){
         printf("\n\n\t\tMENU PRINCIPAL:");
 
-        printf("\n\n\tConnaître le type de l'adresse IP\t[1]");
+        printf("\n\n\t[1] Connaitre le type de l'adresse IP");
 
-        printf("\n\n\tConvertir en Binaire \t[2]");
+        printf("\n\n\t[2] Convertir en Binaire ");
 
-        printf("\n\n\tConvertir en Hexadecimal\t[3]");
+        printf("\n\n\t[3] Convertir en Hexadecimal");
 
-        printf("\n\tSortie\t\t[5]");
+        printf("\n\t[5] Sortie");
 
         printf("\n\n\tSaisissez votre choix :");
         scanf("%d",&ch);
@@ -134,90 +135,66 @@ int check_subnet_mask(int subnet_mask)
 }
 
 // function to determine the type of IP address
-void check_ip_type(char *ip)
-{
-    int first_octet;
-    sscanf(ip, "%d.", &first_octet);
+void check_ip_type(char *ip) {
+    int first_octet, second_octet, third_octet, fourth_octet;
+    sscanf(ip, "%d.%d.%d.%d", &first_octet, &second_octet, &third_octet, &fourth_octet);
 
-    if (first_octet >= 1 && first_octet <= 127)
-        printf("\n\tAdresse IP de classe A\n");
-
-    else if (first_octet >= 128 && first_octet <= 191)
-        printf("\n\tAdresse IP de classe B\n");
-
-    else if (first_octet >= 192 && first_octet <= 223)
-        printf("\n\tAdresse IP de classe C\n");
-
-    else if (first_octet >= 224 && first_octet <= 239)
-        printf("\n\tAdresse IP de classe D\n");
-
-    else if (first_octet >= 240 && first_octet <= 255)
-        printf("\n\tAdresse IP de classe E\n");
-
-    else
-        printf("\n\tAdresse IP invalide\n");
+    if (first_octet == 10 || (first_octet == 172 && second_octet >= 16 && second_octet <= 31) ||
+        (first_octet == 192 && second_octet == 168)) {
+        printf("\n\t\t\tIP privé\n");
+    } else if (first_octet == 169 && second_octet == 254) {
+        printf("\n\t\t\tIP auto-configuré\n");
+    } else if (first_octet == 127) {
+        printf("\n\t\t\tIP local (loopback)\n");
+    } else if (first_octet >= 1 && first_octet <= 126) {
+        printf("\n\t\t\tAdresse IP de classe A (publique)\n");
+    } else if (first_octet >= 128 && first_octet <= 191) {
+        printf("\n\t\t\tAdresse IP de classe B (publique)\n");
+    } else if (first_octet >= 192 && first_octet <= 223) {
+        printf("\n\t\t\tAdresse IP de classe C (publique)\n");
+    } else if (first_octet >= 224 && first_octet <= 239) {
+        printf("\n\t\t\tAdresse IP de classe D (multicast)\n");
+    } else if (first_octet >= 240 && first_octet <= 255) {
+        printf("\n\t\t\tAdresse IP de classe E (expérimentale)\n");
+    } else {
+        printf("\n\t\t\tAdresse IP invalide\n");
+    }
 }
+
 
 // function to convert IP address from decimal to binary
-void dec_to_bin_ip(char *ip)
-{
-    int i, j, k, num;
-    char *ptr, bin_octet[9], bin_ip[33];
+void dec_to_bin_ip(char *ip) {
+    int num, i = 0;
+    char *ptr;
+    char binary_ip[35] = ""; // each octet will be 8 bits + 1 for the dot (total 35)
 
     ptr = strtok(ip, ".");
-
     while (ptr) {
         num = atoi(ptr);
-        memset(bin_octet, '0', 8);
-
-        i = 0;
-        while (num > 0) {
-            bin_octet[i] = (num % 2) + '0';
-            num /= 2;
+        for (int j = 7; j >= 0; j--) {
+            if (num & (1 << j)) {
+                binary_ip[i] = '1';
+            } else {
+                binary_ip[i] = '0';
+            }
             i++;
         }
-
-        bin_octet[i] = '\0';
-
-        for (j = 0, k = strlen(bin_octet) - 1; j < strlen(bin_octet); j++, k--)
-            bin_ip[strlen(bin_ip)] = bin_octet[k];
-
+        binary_ip[i] = '.'; // add dot between octets
+        i++;
         ptr = strtok(NULL, ".");
-
-        if (ptr != NULL)
-            bin_ip[strlen(bin_ip)] = '.';
     }
+    binary_ip[i - 1] = '\0'; // remove last dot
 
-    bin_ip[strlen(bin_ip)] = '\0';
-
-    printf("\n\tL'adresse IP en binaire est : %s\n", bin_ip);
+    printf("\n\t\t\tAdresse IP en binaire : %s\n", binary_ip);
 }
 
+
+
+
 // function to convert IP address from decimal to hexadecimal
-void dec_to_hex_ip(char *ip)
-{
-    int i, j, k, num;
-    char *ptr, hex_octet[3], hex_ip[12];
+void dec_to_hex_ip(char *ip) {
+    int first_octet, second_octet, third_octet, fourth_octet;
+    sscanf(ip, "%d.%d.%d.%d", &first_octet, &second_octet, &third_octet, &fourth_octet);
 
-    ptr = strtok(ip, ".");
-
-    while (ptr) {
-        num = atoi(ptr);
-        memset(hex_octet, 0, sizeof(hex_octet));
-        sprintf(hex_octet, "%X", num);
-
-        if (strlen(hex_octet) == 1) {
-            hex_ip[k++] = '0';
-            hex_ip[k++] = hex_octet[0];
-        } else {
-            hex_ip[k++] = hex_octet[0];
-            hex_ip[k++] = hex_octet[1];
-        }
-
-        hex_ip[k++] = ':';
-        ptr = strtok(NULL, ".");
-    }
-
-    hex_ip[k - 1] = '\0';
-    printf("Adresse IP en Hexadecimal: %s\n", hex_ip);
+    printf("\n\t\t\tAdresse IP en Hexadecimal : %02X:%02X:%02X:%02X\n", first_octet, second_octet, third_octet, fourth_octet);
 }

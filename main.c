@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <arpa/inet.h>
 
 int validate_ip(char *ip);
 int check_subnet_mask(int subnet_mask);
@@ -57,7 +56,7 @@ int main() {
 
         printf("\n\n\t[3] Convertir en Hexadecimal");
 
-        printf("\n\t[5] Sortie");
+        printf("\n\t[4] Sortie");
 
         printf("\n\n\tSaisissez votre choix :");
         scanf("%d",&ch);
@@ -76,11 +75,10 @@ int main() {
                 break;
 
             case 4:
-                break;
-
-            case 5:
                 printf("\n\n\t\tMerci d'avoir utiliser l'appli  ");
                 exit(0);
+                break;
+
 
             default:
                 printf("\nFAUX! veulliez reessayer une nouvelle fois..");
@@ -93,6 +91,7 @@ int main() {
 // function to validate IP address
 int validate_ip(char *ip)
 {
+    
     int num, dots = 0;
     char *ptr;
 
@@ -164,12 +163,16 @@ void check_ip_type(char *ip) {
 
 // function to convert IP address from decimal to binary
 void dec_to_bin_ip(char *ip) {
+    /*"num" pour stocker chaque octet de l'adresse IP sous forme de nombre entier, 
+    et "i" pour suivre l'indice actuel dans la chaîne "binary_ip" qui stocke l'adresse IP binaire.*/
     int num, i = 0;
     char *ptr;
-    char binary_ip[35] = ""; // each octet will be 8 bits + 1 for the dot (total 35)
+    char binary_ip[35] = ""; // pour chaque octet de 8 bits + 1 pour le point (total 35)
 
+    //diviser la chaîne "ip" en octets individuels en utilisant le délimiteur ".". 
     ptr = strtok(ip, ".");
     while (ptr) {
+        //convertit ensuite chaque octet en nombre entier
         num = atoi(ptr);
         for (int j = 7; j >= 0; j--) {
             if (num & (1 << j)) {
@@ -181,9 +184,11 @@ void dec_to_bin_ip(char *ip) {
         }
         binary_ip[i] = '.'; // add dot between octets
         i++;
+        //passer à l'octet suivant
         ptr = strtok(NULL, ".");
     }
-    binary_ip[i - 1] = '\0'; // remove last dot
+    //supprime le dernier point '.' de la chaîne
+    binary_ip[i - 1] = '\0';
 
     printf("\n\t\t\tAdresse IP en binaire : %s\n", binary_ip);
 }
@@ -191,7 +196,7 @@ void dec_to_bin_ip(char *ip) {
 
 
 
-// function to convert IP address from decimal to hexadecimal
+// fonction pour convertir l'adresse IP de décimal en hexadécimal
 void dec_to_hex_ip(char *ip) {
     int first_octet, second_octet, third_octet, fourth_octet;
     sscanf(ip, "%d.%d.%d.%d", &first_octet, &second_octet, &third_octet, &fourth_octet);
